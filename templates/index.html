@@ -1,0 +1,69 @@
+<html>
+  <head>
+    <title>Video Streaming Demonstration</title>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
+    <script src="https://kit.fontawesome.com/32ee507fe4.js" crossorigin="anonymous"></script>
+  </head>
+  <body>
+    <span id="control_handler_url" class="d-none">{{ url_for('control_handler') }}</span>
+    <div class="container d-flex flex-column align-items-center">
+      <h1 class="text-center">Robo</h1>
+      <img src="{{ url_for('video_feed') }}" class="rounded" style="width: 300px; height: 300px;">
+      <div class="controller mt-2 col-4">
+        <div class="row  justify-content-center">
+          <button id="up_btn" class="btn btn-secondary m-2"><i class="fa fa-arrow-up" aria-hidden="true"></i></button>
+        </div>
+        <div class="row  justify-content-center">
+          <button id="left_btn" class="btn btn-secondary my-2 mx-5"><i class="fa fa-arrow-left" aria-hidden="true"></i></button>
+          <button id="right_btn" class="btn btn-secondary my-2 mx-5"><i class="fa fa-arrow-right" aria-hidden="true"></i></button>
+        </div>
+        <div class="row  justify-content-center">
+          <button id="down_btn" class="btn btn-secondary m-2"><i class="fa fa-arrow-down" aria-hidden="true"></i></button>
+        </div>
+      </div>
+    </div>
+  </body>
+
+  <script>
+    function httpRequest(url = '', method='', data, callback){
+        let options = {
+            method : method,
+            headers: {
+                'Content-Type': 'application/json'
+                },
+        }
+        if(data){
+            options.body = JSON.stringify(data)
+        }
+        const response = fetch(url, options);
+        
+        response.then(response_data=>{
+          response_data.json().then(data=>{
+            if(data.status){
+              callback(data, response);
+            }
+          })
+        })
+      }
+  </script>
+
+  <script>
+    function control_handler(e){
+      data = { action: this.id.split("_")[0] }
+      control_handler_url = document.getElementById("control_handler_url").textContent;
+      httpRequest(control_handler_url, "POST", data, function(data, response){
+        console.log(data);
+      })
+    }
+
+    document.getElementById("up_btn").addEventListener("click", control_handler);
+    document.getElementById("left_btn").addEventListener("click", control_handler);
+    document.getElementById("right_btn").addEventListener("click", control_handler);
+    document.getElementById("down_btn").addEventListener("click", control_handler);
+  </script>
+</html>
