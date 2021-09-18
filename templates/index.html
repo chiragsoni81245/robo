@@ -53,7 +53,8 @@
   </script>
 
   <script>
-    var mouseIsDown = {
+    let control_handler_url = document.getElementById("control_handler_url").textContent;
+    let isKeyDown = {
       up: false,
       left: false,
       right: false,
@@ -61,20 +62,53 @@
     }
 
     window.addEventListener('mouseup', function() {
-      data = { action: "stop" }
-      control_handler_url = document.getElementById("control_handler_url").textContent;
-      httpRequest(control_handler_url, "POST", data, function(data, response){
-        console.log(data);
-      })
+      if( !Object.values(isKeyDown).reduce((a,b)=>Boolean(a||b)) ){
+        data = { action: "stop" }
+        control_handler_url = document.getElementById("control_handler_url").textContent;
+        httpRequest(control_handler_url, "POST", data, function(data, response){
+          console.log(data);
+        })
+      }
     });
     
     function control_handler(e){
-      data = { action: this.id.split("_")[0] }
-      control_handler_url = document.getElementById("control_handler_url").textContent;
-      httpRequest(control_handler_url, "POST", data, function(data, response){
-        console.log(data);
-      })
+      if( !Object.values(isKeyDown).reduce((a,b)=>Boolean(a||b)) ){
+        data = { action: this.id.split("_")[0] }
+        httpRequest(control_handler_url, "POST", data, function(data, response){
+          console.log(data);
+        })
+      }
     }
+
+    // Key Bindings
+    function key_binding_handler(e) {
+      let key_map_action = { 37: "left", 38: "up", 39: "right", 40: "down" };
+      if(e.which in key_map_action){
+        let data;
+        if(e.type==="keydown"){
+          data = {action: key_map_action[e.which]}
+          if( !Object.values(isKeyDown).reduce((a,b)=>Boolean(a||b)) ){
+            isKeyDown[data.action]=true;
+            httpRequest(control_handler_url, "POST", data, function(data, response){
+              console.log(data);
+            })
+          }
+        }else if(e.type==="keyup"){
+          if(isKeyDown[key_map_action[e.which]]){
+            data = {action: "stop"}
+            isKeyDown[key_map_action[e.which]] = false;
+            httpRequest(control_handler_url, "POST", data, function(data, response){
+              console.log(data);
+            })
+          }
+        }
+      }
+      e.preventDefault(); // prevent the default action (scroll / move caret)
+    };
+
+    document.addEventListener("keydown", key_binding_handler);
+    document.addEventListener("keyup", key_binding_handler);
+    // End
 
     document.getElementById("up_btn").addEventListener("mousedown", control_handler);
     document.getElementById("left_btn").addEventListener("mousedown", control_handler);

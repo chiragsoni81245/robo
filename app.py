@@ -9,12 +9,12 @@ if os.environ.get('CAMERA'):
     Camera = import_module('camera_' + os.environ['CAMERA']).Camera
 else:
     from camera import Camera
-
+from robo_controller import PIROBO
 # Raspberry Pi camera module (requires picamera package)
 # from camera_pi import Camera
 
 app = Flask(__name__)
-
+robo_controller = PIROBO()
 
 @app.route('/')
 def index():
@@ -40,7 +40,8 @@ def video_feed():
 @app.route("/control_handler", methods=["POST"])
 def control_handler():
     data = request.json
-    print(data)
-    return jsonify({"status": True})
-
+    if(robo_controller.send_action(data["action"])):
+        return jsonify({"status": "Success", "action": data["action"]})
+    else:
+        return jsonify({"status": "Failed", "action": data["action"]})
 
