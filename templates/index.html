@@ -14,7 +14,7 @@
     <div class="container d-flex flex-column align-items-center">
       <h1 class="text-center">Robo</h1>
       <img src="{{ url_for('video_feed') }}" class="rounded" style="width: 300px; height: 300px;">
-      <div class="controller mt-2 col-4">
+      <div class="controller mt-2 col-lg-4">
         <div class="row  justify-content-center">
           <button id="up_btn" class="btn btn-secondary m-2"><i class="fa fa-arrow-up" aria-hidden="true"></i></button>
         </div>
@@ -61,25 +61,7 @@
       down: false
     }
 
-    window.addEventListener('mouseup', function() {
-      if( !Object.values(isKeyDown).reduce((a,b)=>Boolean(a||b)) ){
-        data = { action: "stop" }
-        control_handler_url = document.getElementById("control_handler_url").textContent;
-        httpRequest(control_handler_url, "POST", data, function(data, response){
-          console.log(data);
-        })
-      }
-    });
     
-    function control_handler(e){
-      if( !Object.values(isKeyDown).reduce((a,b)=>Boolean(a||b)) ){
-        data = { action: this.id.split("_")[0] }
-        httpRequest(control_handler_url, "POST", data, function(data, response){
-          console.log(data);
-        })
-      }
-    }
-
     // Key Bindings
     function key_binding_handler(e) {
       let key_map_action = { 37: "left", 38: "up", 39: "right", 40: "down" };
@@ -110,9 +92,82 @@
     document.addEventListener("keyup", key_binding_handler);
     // End
 
-    document.getElementById("up_btn").addEventListener("mousedown", control_handler);
-    document.getElementById("left_btn").addEventListener("mousedown", control_handler);
-    document.getElementById("right_btn").addEventListener("mousedown", control_handler);
-    document.getElementById("down_btn").addEventListener("mousedown", control_handler);
+    function parents_has_selector(element, querySelector){
+      let elementsBySelector = new Set(document.querySelectorAll(querySelector));
+      while(element){
+        if( elementsBySelector.has(element) ){
+          break;
+        }
+        element = element.parentElement;
+      }
+
+      return element
+    }
+
+    // Handle Touch Screen
+    let isTouchStarted = [false, null];
+    if("ontouchstart" in document.documentElement){
+      document.ontouchstart = function(e){
+        let keys = ["up", "left", "right", "down"];
+        for( i in keys ){
+          action = keys[i];
+          if(parents_has_selector(e.target, `#${action}_btn`)){
+            if(!isTouchStarted[0]){
+              isTouchStarted=[true, document.getElementById(`${action}_btn`)];
+              data = { action: action }
+              httpRequest(control_handler_url, "POST", data, function(data, response){
+                console.log(data);
+              })
+              break;
+            }
+          }
+        }
+        
+      }
+
+      document.ontouchend = function(e){
+        let keys = ["up", "left", "right", "down"];
+        for( i in keys ){
+          action = keys[i];
+          if(parents_has_selector(e.target, `#${action}_btn`)){
+            if( isTouchStarted[0] && document.getElementById(`${action}_btn`)==isTouchStarted[1] ){
+              isTouchStarted=[false, null];
+              data = { action: "stop" }
+              httpRequest(control_handler_url, "POST", data, function(data, response){
+                console.log(data);
+              })
+              break;
+            }
+          }
+        }
+      }
+    }else{
+
+      window.addEventListener('mouseup', function() {
+        if( !Object.values(isKeyDown).reduce((a,b)=>Boolean(a||b)) ){
+          data = { action: "stop" }
+          httpRequest(control_handler_url, "POST", data, function(data, response){
+            console.log(data);
+          })
+        }
+      });
+      
+      function control_handler(e){
+        if( !Object.values(isKeyDown).reduce((a,b)=>Boolean(a||b)) ){
+          data = { action: this.id.split("_")[0] }
+          httpRequest(control_handler_url, "POST", data, function(data, response){
+            console.log(data);
+          })
+        }
+      }
+
+      document.getElementById("up_btn").addEventListener("mousedown", control_handler);
+      document.getElementById("left_btn").addEventListener("mousedown", control_handler);
+      document.getElementById("right_btn").addEventListener("mousedown", control_handler);
+      document.getElementById("down_btn").addEventListener("mousedown", control_handler);
+    }
+    // End
+
+    
   </script>
 </html>
