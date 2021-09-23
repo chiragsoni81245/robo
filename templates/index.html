@@ -13,7 +13,7 @@
     <span id="control_handler_url" class="d-none">{{ url_for('control_handler') }}</span>
     <div class="container d-flex flex-column align-items-center">
       <h1 class="text-center">Robo</h1>
-      <img src="{{ url_for('video_feed') }}" class="rounded" style="width: 300px; height: 300px;">
+      <img src="{{ url_for('video_feed') }}" style="transform: rotate(180deg); width: 300px; height: 300px;">
       <div class="controller mt-2 col-lg-4">
         <div class="row  justify-content-center">
           <button id="up_btn" class="btn btn-secondary m-2"><i class="fa fa-arrow-up" aria-hidden="true"></i></button>
