@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 from importlib import import_module
 import os
-from flask import Flask, render_template, Response, request, jsonify
+from flask import Flask, json, render_template, Response, request, jsonify
 from flask.wrappers import Request
 
 # import camera driver
@@ -45,3 +45,14 @@ def control_handler():
     else:
         return jsonify({"status": "Failed", "action": data["action"]})
 
+
+@app.route("/tunnel_address")
+def get_tunnel_address():
+    return jsonify({"URL": ngrok_tunnel.public_url})
+
+
+if __name__=="__main__":
+    from pyngrok import ngrok, conf
+    ngrok_tunnel = ngrok.connect(8080)
+    print(ngrok_tunnel)
+    app.run(host="localhost", port=8080)
